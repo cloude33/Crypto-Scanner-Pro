@@ -1,0 +1,266 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --foreground-rgb: 255, 255, 255;
+  --background-start-rgb: 15, 23, 42;
+  --background-end-rgb: 30, 41, 59;
+}
+
+:root.light {
+  --foreground-rgb: 0, 0, 0;
+  --background-start-rgb: 249, 250, 251;
+  --background-end-rgb: 243, 244, 246;
+}
+
+* {
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
+}
+
+html,
+body {
+  max-width: 100vw;
+  overflow-x: hidden;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+body {
+  color: rgb(var(--foreground-rgb));
+  background: linear-gradient(
+      to bottom right,
+      rgb(var(--background-start-rgb)),
+      rgb(var(--background-end-rgb))
+    )
+    fixed;
+}
+
+/* Light theme specific styles */
+.light .glass-effect {
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  color: #1f2937;
+}
+
+.light .signal-strong-long {
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: white;
+}
+
+.light .signal-long {
+  background: rgba(16, 185, 129, 0.15);
+  border: 1px solid #10b981;
+  color: #065f46;
+}
+
+.light .signal-weak-long {
+  background: rgba(16, 185, 129, 0.08);
+  border: 1px solid rgba(16, 185, 129, 0.5);
+  color: #065f46;
+}
+
+.light .signal-strong-short {
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+  color: white;
+}
+
+.light .signal-short {
+  background: rgba(239, 68, 68, 0.15);
+  border: 1px solid #ef4444;
+  color: #7f1d1d;
+}
+
+.light .signal-weak-short {
+  background: rgba(239, 68, 68, 0.08);
+  border: 1px solid rgba(239, 68, 68, 0.5);
+  color: #7f1d1d;
+}
+
+.light .signal-neutral {
+  background: rgba(100, 116, 139, 0.15);
+  border: 1px solid #64748b;
+  color: #374151;
+}
+
+/* Timeframe colors for light theme */
+.light .timeframe-5m {
+  background: rgba(59, 130, 246, 0.15);
+  border: 1px solid #3b82f6;
+  color: #1e40af;
+}
+
+.light .timeframe-15m {
+  background: rgba(16, 185, 129, 0.15);
+  border: 1px solid #10b981;
+  color: #065f46;
+}
+
+.light .timeframe-30m {
+  background: rgba(245, 158, 11, 0.15);
+  border: 1px solid #f59e0b;
+  color: #92400e;
+}
+
+.light .timeframe-1h {
+  background: rgba(249, 115, 22, 0.15);
+  border: 1px solid #f97316;
+  color: #9a3412;
+}
+
+.light .timeframe-4h {
+  background: rgba(239, 68, 68, 0.15);
+  border: 1px solid #ef4444;
+  color: #991b1b;
+}
+
+.light .timeframe-1d {
+  background: rgba(139, 92, 246, 0.15);
+  border: 1px solid #8b5cf6;
+  color: #5b21b6;
+}
+
+.light .timeframe-1w {
+  background: rgba(236, 72, 153, 0.15);
+  border: 1px solid #ec4899;
+  color: #9d174d;
+}
+
+/* Scrollbar for light theme */
+.light ::-webkit-scrollbar-track {
+  background: rgba(243, 244, 246, 0.5);
+}
+
+.light ::-webkit-scrollbar-thumb {
+  background: rgba(156, 163, 175, 0.5);
+}
+
+.light ::-webkit-scrollbar-thumb:hover {
+  background: rgba(156, 163, 175, 0.8);
+}
+
+/* Dark theme styles (existing) */
+.glass-effect {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.signal-strong-long {
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: white;
+}
+
+.signal-long {
+  background: rgba(16, 185, 129, 0.2);
+  border: 1px solid #10b981;
+  color: #10b981;
+}
+
+.signal-weak-long {
+  background: rgba(16, 185, 129, 0.1);
+  border: 1px solid rgba(16, 185, 129, 0.5);
+  color: #10b981;
+}
+
+.signal-strong-short {
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+  color: white;
+}
+
+.signal-short {
+  background: rgba(239, 68, 68, 0.2);
+  border: 1px solid #ef4444;
+  color: #ef4444;
+}
+
+.signal-weak-short {
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.5);
+  color: #ef4444;
+}
+
+.signal-neutral {
+  background: rgba(100, 116, 139, 0.2);
+  border: 1px solid #64748b;
+  color: #64748b;
+}
+
+.timeframe-5m {
+  background: rgba(59, 130, 246, 0.2);
+  border: 1px solid #3b82f6;
+  color: #3b82f6;
+}
+
+.timeframe-15m {
+  background: rgba(16, 185, 129, 0.2);
+  border: 1px solid #10b981;
+  color: #10b981;
+}
+
+.timeframe-30m {
+  background: rgba(245, 158, 11, 0.2);
+  border: 1px solid #f59e0b;
+  color: #f59e0b;
+}
+
+.timeframe-1h {
+  background: rgba(249, 115, 22, 0.2);
+  border: 1px solid #f97316;
+  color: #f97316;
+}
+
+.timeframe-4h {
+  background: rgba(239, 68, 68, 0.2);
+  border: 1px solid #ef4444;
+  color: #ef4444;
+}
+
+.timeframe-1d {
+  background: rgba(139, 92, 246, 0.2);
+  border: 1px solid #8b5cf6;
+  color: #8b5cf6;
+}
+
+.timeframe-1w {
+  background: rgba(236, 72, 153, 0.2);
+  border: 1px solid #ec4899;
+  color: #ec4899;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(30, 41, 59, 0.5);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(100, 116, 139, 0.5);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(100, 116, 139, 0.8);
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.fade-in {
+  animation: fadeIn 0.5s ease-out;
+}
