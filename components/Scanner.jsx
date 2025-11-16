@@ -1,3 +1,4 @@
+// Scanner component for configuring and initiating cryptocurrency scans
 import { useState, useEffect } from 'react';
 import { useTheme } from './ThemeProvider';
 
@@ -13,26 +14,16 @@ export default function Scanner({ onScan }) {
   const [allSymbols, setAllSymbols] = useState([]);
   const [loadingSymbols, setLoadingSymbols] = useState(false);
 
-  // Borsa seçenekleri
+  // Borsa seçenekleri - Only Binance
   const exchanges = {
     'BINANCE': {
       name: 'Binance',
       color: 'bg-yellow-500/20 border-yellow-500',
       symbolSuffix: 'USDT'
-    },
-    'BYBIT': {
-      name: 'ByBit',
-      color: 'bg-blue-500/20 border-blue-500', 
-      symbolSuffix: 'USDT'
-    },
-    'OKX': {
-      name: 'OKX',
-      color: 'bg-purple-500/20 border-purple-500',
-      symbolSuffix: 'USDT'
     }
   };
 
-  // Binance'den tüm USDT pair'lerini çek
+  // Fetch all USDT pairs from Binance when exchange changes
   useEffect(() => {
     if (scanConfig.exchange === 'BINANCE') {
       fetchAllSymbols();
@@ -42,6 +33,7 @@ export default function Scanner({ onScan }) {
     }
   }, [scanConfig.exchange]);
 
+  // Fetch all available symbols from the API
   const fetchAllSymbols = async () => {
     setLoadingSymbols(true);
     try {
@@ -58,6 +50,7 @@ export default function Scanner({ onScan }) {
     }
   };
 
+  // Get default symbols for an exchange
   const getDefaultSymbols = (exchange) => {
     const baseSymbols = ['BTC', 'ETH', 'BNB', 'ADA', 'XRP', 'DOT', 'LTC', 'LINK', 'BCH', 'EOS', 'XLM', 'ATOM', 'SOL', 'MATIC', 'AVAX'];
     return baseSymbols.map(symbol => `${symbol}${exchanges[exchange].symbolSuffix}`);
@@ -71,6 +64,7 @@ export default function Scanner({ onScan }) {
 
   const allTimeframes = ['5m', '15m', '30m', '1h', '4h', '1d', '1w'];
 
+  // Handle form submission and initiate scan
   const handleSubmit = (e) => {
     e.preventDefault();
     
@@ -108,6 +102,7 @@ export default function Scanner({ onScan }) {
     });
   };
 
+  // Toggle a timeframe selection
   const toggleTimeframe = (tf) => {
     setScanConfig(prev => ({
       ...prev,
@@ -117,6 +112,7 @@ export default function Scanner({ onScan }) {
     }));
   };
 
+  // Select all available timeframes
   const selectAllTimeframes = () => {
     setScanConfig(prev => ({
       ...prev,
@@ -124,6 +120,7 @@ export default function Scanner({ onScan }) {
     }));
   };
 
+  // Clear all selected timeframes
   const clearAllTimeframes = () => {
     setScanConfig(prev => ({
       ...prev,
@@ -134,12 +131,12 @@ export default function Scanner({ onScan }) {
   return (
     <div className="glass-effect rounded-xl p-6 mb-6">
       <form onSubmit={handleSubmit} className="space-y-6">
-        {/* Exchange Selection */}
+        {/* Exchange Selection - Only Binance */}
         <div>
           <label className="block text-sm font-medium mb-3">
-            🏦 Borsa Seçimi
+            🏦 Exchange
           </label>
-          <div className="grid grid-cols-3 gap-2">
+          <div className="grid grid-cols-1 gap-2">
             {Object.entries(exchanges).map(([key, exchange]) => (
               <button
                 key={key}
@@ -160,7 +157,7 @@ export default function Scanner({ onScan }) {
         {/* Scan Type */}
         <div>
           <label className="block text-sm font-medium mb-3">
-            🔍 Tarama Türü
+            🔍 Scan Type
           </label>
           <div className="grid grid-cols-3 gap-2">
             {[
@@ -187,14 +184,14 @@ export default function Scanner({ onScan }) {
         {/* Symbols */}
         <div>
           <label className="block text-sm font-medium mb-3">
-            📊 {exchanges[scanConfig.exchange].name} Coin Seçimi {loadingSymbols && <span className="text-yellow-400">(yükleniyor...)</span>}
+            📊 {exchanges[scanConfig.exchange].name} Symbols {loadingSymbols && <span className="text-yellow-400">(loading...)</span>}
           </label>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-3">
             {[
-              { value: 'major', label: 'Major Coinler', count: symbolOptions.major.length },
-              { value: 'top15', label: 'Top 15 Coin', count: symbolOptions.top15.length },
-              { value: 'all', label: 'Tüm Coinler', count: symbolOptions.all.length, warning: true },
-              { value: 'custom', label: 'Özel Coin', count: 1 }
+              { value: 'major', label: 'Major Coins', count: symbolOptions.major.length },
+              { value: 'top15', label: 'Top 15 Coins', count: symbolOptions.top15.length },
+              { value: 'all', label: 'All Coins', count: symbolOptions.all.length, warning: true },
+              { value: 'custom', label: 'Custom Coin', count: 1 }
             ].map((symbolType) => (
               <button
                 key={symbolType.value}
@@ -231,8 +228,8 @@ export default function Scanner({ onScan }) {
               <div className="flex items-center text-yellow-400 text-sm">
                 <span className="mr-2">⚠️</span>
                 <span>
-                  <strong>{symbolOptions.all.length} coin</strong> taranacak. 
-                  Bu işlem birkaç dakika sürebilir.
+                  <strong>{symbolOptions.all.length} coins</strong> will be scanned. 
+                  This process may take a few minutes.
                 </span>
               </div>
             </div>
@@ -243,7 +240,7 @@ export default function Scanner({ onScan }) {
         <div>
           <div className="flex justify-between items-center mb-3">
             <label className="block text-sm font-medium">
-              ⏰ Zaman Dilimleri
+              ⏰ Timeframes
             </label>
             <div className="flex gap-2">
               <button
@@ -251,14 +248,14 @@ export default function Scanner({ onScan }) {
                 onClick={selectAllTimeframes}
                 className="text-xs px-2 py-1 bg-blue-500/20 border border-blue-500 rounded hover:bg-blue-500/30"
               >
-                Tümünü Seç
+                Select All
               </button>
               <button
                 type="button"
                 onClick={clearAllTimeframes}
                 className="text-xs px-2 py-1 bg-red-500/20 border border-red-500 rounded hover:bg-red-500/30"
               >
-                Temizle
+                Clear
               </button>
             </div>
           </div>
@@ -279,7 +276,7 @@ export default function Scanner({ onScan }) {
             ))}
           </div>
           <div className="mt-2 text-xs text-gray-400">
-            Seçili: {scanConfig.timeframes.length} zaman dilimi
+            Selected: {scanConfig.timeframes.length} timeframes
           </div>
         </div>
 
@@ -290,16 +287,16 @@ export default function Scanner({ onScan }) {
           disabled={scanConfig.timeframes.length === 0 || (scanConfig.symbols === 'all' && allSymbols.length === 0)}
         >
           {scanConfig.symbols === 'all' ? (
-            <>🚀 TÜM COINLERİ TARA ({symbolOptions.all.length})</>
+            <>🚀 SCAN ALL COINS ({symbolOptions.all.length})</>
           ) : (
-            <>🚀 TARAMAYI BAŞLAT</>
+            <>🚀 START SCAN</>
           )}
         </button>
 
         {/* Progress Info */}
         {scanConfig.symbols === 'all' && (
           <div className="text-center text-sm text-gray-400">
-            ⏳ Tahmini süre: ~{Math.ceil((symbolOptions.all.length * scanConfig.timeframes.length) / 10)} saniye
+            ⏳ Estimated time: ~{Math.ceil((symbolOptions.all.length * scanConfig.timeframes.length) / 10)} seconds
           </div>
         )}
       </form>

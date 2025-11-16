@@ -1,3 +1,4 @@
+// Header component with theme toggle functionality
 'use client'
 import { useTheme } from './ThemeProvider'
 
@@ -11,7 +12,7 @@ export default function Header() {
         <button
           onClick={toggleTheme}
           className="p-2 rounded-lg glass-effect hover:bg-gray-700/50 transition-all duration-200"
-          title={theme === 'dark' ? 'Açık tema' : 'Koyu tema'}
+          title={theme === 'dark' ? 'Light theme' : 'Dark theme'}
         >
           {theme === 'dark' ? (
             <svg className="w-6 h-6 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -29,7 +30,7 @@ export default function Header() {
         🎯 Crypto Scanner Pro
       </h1>
       <p className="text-gray-600 dark:text-gray-300">
-        Çoklu Borsa - ICT Stratejisi ile Long ve Short Sinyalleri
+Multi-Exchange - Long and Short Signals with ICT Strategy
       </p>
     </div>
   )

@@ -1,3 +1,4 @@
+// Theme provider for managing dark/light theme across the application
 'use client'
 import { createContext, useContext, useState, useEffect } from 'react'
 

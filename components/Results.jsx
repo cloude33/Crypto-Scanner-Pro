@@ -1,3 +1,4 @@
+// Results component for displaying scan results with filtering capabilities
 import { useState } from 'react';
 
 export default function Results({ data }) {
@@ -20,11 +21,13 @@ export default function Results({ data }) {
     '1w': '1W'
   };
 
+  // Generate TradingView link for a symbol and timeframe
   const getTradingViewLink = (symbol, timeframe) => {
     const tvTimeframe = tradingViewTimeframes[timeframe] || '60';
     return `https://www.tradingview.com/chart/?symbol=BINANCE:${symbol}&interval=${tvTimeframe}`;
   };
 
+  // Filter results based on selected signal type and timeframe
   const filteredResults = data.results.filter(result => {
     // Sinyal tipi filtresi
     if (filters.signalType === 'long' && !result.final_signal.includes('LONG')) return false;
@@ -50,6 +53,7 @@ export default function Results({ data }) {
     timeframeStats[tf] = data.results.filter(r => r.timeframe === tf).length;
   });
 
+  // Get CSS class for signal color based on signal type
   const getSignalColor = (signal) => {
     if (signal.includes('STRONG_LONG')) return 'signal-strong-long';
     if (signal.includes('LONG')) return 'signal-long';
@@ -60,6 +64,7 @@ export default function Results({ data }) {
     return 'signal-neutral';
   };
 
+  // Get icon for signal type
   const getSignalIcon = (signal) => {
     if (signal.includes('STRONG_LONG')) return '🟢';
     if (signal.includes('LONG')) return '🟡';
@@ -70,6 +75,7 @@ export default function Results({ data }) {
     return '➡️';
   };
 
+  // Get CSS class for timeframe color
   const getTimeframeColor = (tf) => {
     const colors = {
       '5m': 'timeframe-5m',
@@ -113,7 +119,7 @@ export default function Results({ data }) {
         </div>
         <div className="glass-effect rounded-lg p-3 text-center">
           <div className="text-xl font-bold">{data.results.length}</div>
-          <div className="text-xs">TOPLAM</div>
+          <div className="text-xs">TOTAL</div>
         </div>
       </div>
 
@@ -133,11 +139,11 @@ export default function Results({ data }) {
           {/* Signal Type Filter */}
           <div>
             <label className="block text-sm font-medium mb-2">
-              📊 Sinyal Tipi
+              📊 Signal Type
             </label>
             <div className="flex flex-wrap gap-2">
               {[
-                { value: 'all', label: 'Tüm Sinyaller', count: data.results.length },
+                { value: 'all', label: 'All Signals', count: data.results.length },
                 { value: 'long', label: '🟢 LONG', count: signalStats.strong_long + signalStats.long + signalStats.weak_long },
                 { value: 'short', label: '🔴 SHORT', count: signalStats.strong_short + signalStats.short + signalStats.weak_short }
               ].map((filterOption) => (
@@ -159,7 +165,7 @@ export default function Results({ data }) {
           {/* Timeframe Filter */}
           <div>
             <label className="block text-sm font-medium mb-2">
-              ⏰ Zaman Dilimi
+              ⏰ Timeframe
             </label>
             <div className="flex flex-wrap gap-2">
               <button
@@ -170,7 +176,7 @@ export default function Results({ data }) {
                 }`}
                 onClick={() => setFilters(prev => ({ ...prev, timeframe: 'all' }))}
               >
-                Tüm Zamanlar ({data.results.length})
+All Timeframes ({data.results.length})
               </button>
               {uniqueTimeframes.map(tf => (
                 <button
@@ -191,12 +197,12 @@ export default function Results({ data }) {
         <div className="mt-3 flex flex-wrap gap-2">
           {filters.signalType !== 'all' && (
             <span className="px-2 py-1 bg-blue-500/20 border border-blue-500 rounded text-xs">
-              Sinyal: {filters.signalType === 'long' ? 'LONG' : 'SHORT'}
+Signal: {filters.signalType === 'long' ? 'LONG' : 'SHORT'}
             </span>
           )}
           {filters.timeframe !== 'all' && (
             <span className={`px-2 py-1 rounded text-xs ${getTimeframeColor(filters.timeframe)}`}>
-              Zaman: {filters.timeframe}
+Time: {filters.timeframe}
             </span>
           )}
           {(filters.signalType !== 'all' || filters.timeframe !== 'all') && (
@@ -204,7 +210,7 @@ export default function Results({ data }) {
               className="px-2 py-1 bg-red-500/20 border border-red-500 rounded text-xs hover:bg-red-500/30"
               onClick={() => setFilters({ signalType: 'all', timeframe: 'all' })}
             >
-              Filtreleri Temizle
+Clear Filters
             </button>
           )}
         </div>
@@ -213,10 +219,10 @@ export default function Results({ data }) {
       {/* Results Count */}
       <div className="mb-4 text-center">
         <div className="glass-effect inline-block px-4 py-2 rounded-lg">
-          <span className="text-blue-400 font-semibold">{filteredResults.length}</span> sonuç bulundu
+          <span className="text-blue-400 font-semibold">{filteredResults.length}</span> results found
           {(filters.signalType !== 'all' || filters.timeframe !== 'all') && (
             <span className="text-gray-400 text-sm ml-2">
-              (filtrelenmiş)
+(filtered)
             </span>
           )}
         </div>
@@ -226,15 +232,15 @@ export default function Results({ data }) {
       <div className="glass-effect rounded-xl overflow-hidden">
         <div className="grid grid-cols-12 gap-4 p-4 bg-gray-700/50 font-medium text-sm">
           <div className="col-span-2">Coin</div>
-          <div className="col-span-1">Zaman</div>
-          <div className="col-span-2">Sinyal</div>
-          <div className="col-span-1">Fiyat</div>
+          <div className="col-span-1">Time</div>
+          <div className="col-span-2">Signal</div>
+          <div className="col-span-1">Price</div>
           <div className="col-span-1">ATR</div>
           <div className="col-span-1">ADX</div>
           <div className="col-span-1">KZ</div>
           <div className="col-span-1">S/D</div>
           <div className="col-span-1">FVG</div>
-          <div className="col-span-1">Grafik</div>
+          <div className="col-span-1">Chart</div>
         </div>
         
         <div className="max-h-96 overflow-y-auto">
@@ -249,7 +255,7 @@ export default function Results({ data }) {
                   {result.symbol}
                 </div>
                 
-                {/* Zaman Dilimi */}
+                {/* Timeframe */}
                 <div className={`col-span-1 font-mono ${getTimeframeColor(result.timeframe)} px-2 py-1 rounded text-center`}>
                   {result.timeframe}
                 </div>
@@ -259,14 +265,14 @@ export default function Results({ data }) {
                   {getSignalIcon(result.final_signal)} {result.final_signal}
                 </div>
                 
-                {/* Fiyat */}
+                {/* Price */}
                 <div className="col-span-1 font-mono">${result.price.toFixed(4)}</div>
                 
                 {/* ATR */}
-                <div className="col-span-1 font-mono text-orange-400">{result.atr.toFixed(4)}</div>
+                <div className="col-span-1 font-mono text-orange-400">{Number(result.atr).toFixed(4)}</div>
                 
                 {/* ADX */}
-                <div className="col-span-1 font-mono text-purple-400">{result.adx.toFixed(1)}</div>
+                <div className="col-span-1 font-mono text-purple-400">{Number(result.adx).toFixed(1)}</div>
                 
                 {/* Killzone */}
                 <div className="col-span-1 text-cyan-400 text-sm">{result.killzone || '-'}</div>
@@ -283,16 +289,16 @@ export default function Results({ data }) {
                   <span className="text-red-400">{result.fvg_bearish}</span>
                 </div>
                 
-                {/* TradingView Link - GRAFİK SİMGESİ */}
+                {/* TradingView Link - Chart Icon */}
                 <div className="col-span-1">
                   <a
                     href={getTradingViewLink(result.symbol, result.timeframe)}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="inline-flex items-center justify-center w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 rounded-lg transition-all duration-200 transform hover:scale-110 group relative"
-                    title={`${result.symbol} - ${result.timeframe} TradingView Grafiğini Aç`}
+                    title={`Open ${result.symbol} - ${result.timeframe} TradingView Chart`}
                   >
-                    {/* Grafik Simgesi */}
+                    {/* Chart Icon */}
                     <svg 
                       className="w-4 h-4 text-white" 
                       fill="none" 
@@ -309,7 +315,7 @@ export default function Results({ data }) {
                     
                     {/* Hover Tooltip */}
                     <span className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap shadow-lg border border-gray-600">
-                      📈 Grafiği Aç
+                      📈 Open Chart
                     </span>
                   </a>
                 </div>
@@ -317,7 +323,7 @@ export default function Results({ data }) {
             ))
           ) : (
             <div className="p-8 text-center text-gray-400">
-              ❌ Filtrelere uygun sonuç bulunamadı
+              ❌ No results found for the selected filters
             </div>
           )}
         </div>
@@ -330,14 +336,14 @@ export default function Results({ data }) {
             <span className="inline-flex items-center justify-center w-6 h-6 bg-gradient-to-br from-blue-500 to-purple-600 rounded text-white text-xs">
               📈
             </span>
-            <strong>{filteredResults.length} coin</strong> için TradingView grafiklerini açabilirsiniz
+You can open TradingView charts for <strong>{filteredResults.length} coins</strong>
           </div>
         </div>
       )}
 
       {/* Last Update */}
       <div className="mt-4 text-center text-gray-400 text-sm">
-        Son Güncelleme: {new Date(data.timestamp).toLocaleString('tr-TR')}
+Last Update: {new Date(data.timestamp).toLocaleString('en-US')}
       </div>
     </div>
   );

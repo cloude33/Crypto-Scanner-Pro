@@ -1,18 +1,23 @@
 'use client'
+// Main page component for the Crypto Scanner application
 import { useState } from 'react';
 import Scanner from '../components/Scanner';
 import Results from '../components/Results';
 import Loading from '../components/Loading';
+import Progress from '../components/Progress';
 import Header from '../components/Header';
 
 export default function Home() {
   const [results, setResults] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [progress, setProgress] = useState({ processed: 0, total: 0, currentSymbol: '' });
 
+  // Handle the scanning process by sending configuration to the API
   const handleScan = async (scanConfig) => {
     setLoading(true);
     setError(null);
+    setProgress({ processed: 0, total: scanConfig.symbols.length, currentSymbol: '' });
     
     try {
       const response = await fetch('/api/scan', {
@@ -24,13 +29,23 @@ export default function Home() {
       });
       
       if (!response.ok) {
-        throw new Error('Tarama sırasında hata oluştu');
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Tarama sırasında hata oluştu');
       }
       
       const data = await response.json();
       setResults(data);
+      
+      // Show success message
+      if (data.success && data.results.length > 0) {
+        // Success handled by setting results
+      } else if (data.success) {
+        // No results found
+        setError('Tarama tamamlandı ancak sonuç bulunamadı');
+      }
     } catch (err) {
-      setError(err.message);
+      console.error('Scan error:', err);
+      setError(err.message || 'Tarama sırasında bilinmeyen bir hata oluştu');
     } finally {
       setLoading(false);
     }
@@ -48,15 +63,31 @@ export default function Home() {
         {/* Loading */}
         {loading && <Loading />}
         
+        {/* Progress */}
+        {loading && (
+          <Progress 
+            processed={progress.processed} 
+            total={progress.total} 
+            symbol={progress.currentSymbol} 
+          />
+        )}
+        
         {/* Error */}
         {error && (
-          <div className="mt-6 p-4 bg-red-500/20 border border-red-500 rounded-lg">
+          <div className="mt-6 p-4 bg-red-500/20 border border-red-500 rounded-lg animate-pulse">
             <p className="text-red-300">❌ {error}</p>
           </div>
         )}
         
         {/* Results */}
         {results && !loading && <Results data={results} />}
+        
+        {/* Success Message */}
+        {results && results.success && !error && (
+          <div className="mt-6 p-4 bg-green-500/20 border border-green-500 rounded-lg">
+            <p className="text-green-300">✅ Scan completed successfully! {results.results.length} results found.</p>
+          </div>
+        )}
       </div>
     </div>
   );

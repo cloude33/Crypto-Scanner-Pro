@@ -3,12 +3,12 @@ import ThemeProvider from '../components/ThemeProvider'
 
 export const metadata = {
   title: 'Crypto Scanner Pro',
-  description: 'Çoklu Borsa - ICT Stratejisi ile Long ve Short Sinyalleri',
+  description: 'Multi-Exchange - Long and Short Signals with ICT Strategy',
 }
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="tr">
+    <html lang="en">
       <body>
         <ThemeProvider>
           {children}
