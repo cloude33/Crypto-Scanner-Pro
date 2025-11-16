@@ -40,7 +40,7 @@ export async function POST(request) {
       );
     }
     
-    console.log(`Starting scan for ${symbols.length} symbols on ${exchange}`);
+    console.log(`Starting scan for ${symbols.length} symbols on ${exchange} with timeframes: ${timeframes.join(', ')}`);
     
     // TEST WITH ONLY FIRST 10 COINS
     const testSymbols = symbols.slice(0, 10);
@@ -48,65 +48,114 @@ export async function POST(request) {
     
     // Progress tracking
     let processedCount = 0;
+    const totalOperations = testSymbols.length * timeframes.length;
     
-    // FETCH REAL DATA FOR EACH COIN
+    // FETCH REAL DATA FOR EACH COIN AND TIMEFRAME
     for (const symbol of testSymbols) {
       try {
-        console.log(`Scanning ${symbol}... (${processedCount + 1}/${testSymbols.length})`);
+        console.log(`Scanning ${symbol}...`);
         
         // FETCH REAL BINANCE DATA
         // 1. First get the current price
         const currentPrice = await getCurrentPrice(symbol);
         if (!currentPrice) {
           console.log(`Skipping ${symbol} - could not fetch price`);
-          processedCount++;
+          processedCount += timeframes.length;
           continue;
         }
         
-        // 2. Get kline data (1 hour)
-        const klines = await getKlines(symbol, '1h', 50);
-        if (!klines || klines.length < 10) {
-          console.log(`Skipping ${symbol} - insufficient kline data`);
+        // 2. Process each selected timeframe
+        for (const timeframe of timeframes) {
+          console.log(`Scanning ${symbol} on ${timeframe}... (${processedCount + 1}/${totalOperations})`);
+          
+          // Get kline data for this timeframe
+          const klines = await getKlines(symbol, timeframe, 50);
+          if (!klines || klines.length < 10) {
+            console.log(`Skipping ${symbol} on ${timeframe} - insufficient kline data`);
+            processedCount++;
+            continue;
+          }
+          
+          // Generate signal
+          const signal = await generateRealSignal(klines, currentPrice);
+          
+          results.push({
+            symbol,
+            timeframe,
+            exchange: 'BINANCE',
+            price: currentPrice,
+            final_signal: signal,
+            price_change_24h: ((currentPrice - parseFloat(klines[0][4])) / parseFloat(klines[0][4]) * 100).toFixed(2),
+            volatility: calculateRealVolatility(klines),
+            atr: calculateRealATR(klines),
+            adx: 25 + Math.random() * 35,
+            supply_zones: Math.floor(Math.random() * 3),
+            demand_zones: Math.floor(Math.random() * 3),
+            killzone: getKillzone()
+          });
+          
           processedCount++;
-          continue;
+          
+          // Rate limiting between timeframe requests
+          await new Promise(resolve => setTimeout(resolve, 200));
         }
         
-        // 3. Generate signal
-        const signal = await generateRealSignal(klines, currentPrice);
-        
-        results.push({
-          symbol,
-          timeframe: '1h',
-          exchange: 'BINANCE',
-          price: currentPrice,
-          final_signal: signal,
-          price_change_24h: ((currentPrice - parseFloat(klines[0][4])) / parseFloat(klines[0][4]) * 100).toFixed(2),
-          volatility: calculateRealVolatility(klines),
-          atr: calculateRealATR(klines),
-          adx: 25 + Math.random() * 35,
-          supply_zones: Math.floor(Math.random() * 3),
-          demand_zones: Math.floor(Math.random() * 3),
-          killzone: getKillzone()
-        });
-        
-        processedCount++;
-        
-        // Rate limiting
-        await new Promise(resolve => setTimeout(resolve, 500));
+        // Additional rate limiting between symbols
+        await new Promise(resolve => setTimeout(resolve, 300));
         
       } catch (error) {
         console.error(`Error scanning ${symbol}:`, error.message);
-        processedCount++;
+        processedCount += timeframes.length;
         continue;
       }
     }
     
-    // Filtering
+    // Multi-timeframe filtering and consolidation
     let filteredResults = results;
+    
+    // Group results by symbol
+    const symbolGroups = {};
+    results.forEach(result => {
+      if (!symbolGroups[result.symbol]) {
+        symbolGroups[result.symbol] = [];
+      }
+      symbolGroups[result.symbol].push(result);
+    });
+    
+    // For each symbol, check for consistency across timeframes
+    const consistentResults = [];
+    Object.keys(symbolGroups).forEach(symbol => {
+      const symbolResults = symbolGroups[symbol];
+      
+      // If scanning for specific signal type, check for consistency
+      if (scanType === 'long' || scanType === 'short') {
+        const longSignals = symbolResults.filter(r => r.final_signal === 'LONG' || r.final_signal === 'STRONG_LONG');
+        const shortSignals = symbolResults.filter(r => r.final_signal === 'SHORT' || r.final_signal === 'STRONG_SHORT');
+        
+        // Only include if there's consistency across timeframes
+        if (scanType === 'long' && longSignals.length > 0 && shortSignals.length === 0) {
+          // Prefer higher timeframe signals for display
+          const sortedResults = longSignals.sort((a, b) => getTimeframePriority(b.timeframe) - getTimeframePriority(a.timeframe));
+          consistentResults.push(sortedResults[0]);
+        } else if (scanType === 'short' && shortSignals.length > 0 && longSignals.length === 0) {
+          // Prefer higher timeframe signals for display
+          const sortedResults = shortSignals.sort((a, b) => getTimeframePriority(b.timeframe) - getTimeframePriority(a.timeframe));
+          consistentResults.push(sortedResults[0]);
+        }
+      } else {
+        // For 'all' scan type, show the highest timeframe result
+        const sortedResults = symbolResults.sort((a, b) => getTimeframePriority(b.timeframe) - getTimeframePriority(a.timeframe));
+        consistentResults.push(sortedResults[0]);
+      }
+    });
+    
+    // Apply final filtering
     if (scanType === 'long') {
-      filteredResults = results.filter(r => r.final_signal === 'LONG' || r.final_signal === 'STRONG_LONG');
+      filteredResults = consistentResults.filter(r => r.final_signal === 'LONG' || r.final_signal === 'STRONG_LONG');
     } else if (scanType === 'short') {
-      filteredResults = results.filter(r => r.final_signal === 'SHORT' || r.final_signal === 'STRONG_SHORT');
+      filteredResults = consistentResults.filter(r => r.final_signal === 'SHORT' || r.final_signal === 'STRONG_SHORT');
+    } else {
+      filteredResults = consistentResults;
     }
     
     console.log(`Scan completed: ${filteredResults.length} results found from ${processedCount} processed symbols`);
@@ -204,7 +253,7 @@ async function getKlines(symbol, interval, limit = 50) {
 }
 
 // GENERATE REAL SIGNAL
-// Generates trading signals based on price and volume analysis
+// Generates trading signals based on price and volume analysis with multi-timeframe consideration
 async function generateRealSignal(klines, currentPrice) {
   try {
     const closes = klines.map(k => parseFloat(k[4]));
@@ -220,14 +269,23 @@ async function generateRealSignal(klines, currentPrice) {
     const latestVolume = volumes[volumes.length - 1];
     const volumeRatio = latestVolume / avgVolume;
     
-    // Real signal logic
-    if (priceChange > 0.5 && volumeRatio > 1.2) {
+    // Trend analysis using multiple periods
+    const shortMA = calculateMA(closes, 5);
+    const longMA = calculateMA(closes, 20);
+    const trend = shortMA > longMA ? 'UPTREND' : shortMA < longMA ? 'DOWNTREND' : 'NEUTRAL';
+    
+    // Real signal logic with trend consideration
+    if (trend === 'UPTREND' && priceChange > 0.3 && volumeRatio > 1.1) {
       return 'STRONG_LONG';
-    } else if (priceChange > 0.2) {
+    } else if (trend === 'UPTREND' && priceChange > 0.1) {
       return 'LONG';
-    } else if (priceChange < -0.5 && volumeRatio > 1.2) {
+    } else if (trend === 'DOWNTREND' && priceChange < -0.3 && volumeRatio > 1.1) {
       return 'STRONG_SHORT';
-    } else if (priceChange < -0.2) {
+    } else if (trend === 'DOWNTREND' && priceChange < -0.1) {
+      return 'SHORT';
+    } else if (priceChange > 0.2 && volumeRatio > 1.2) {
+      return 'LONG';
+    } else if (priceChange < -0.2 && volumeRatio > 1.2) {
       return 'SHORT';
     } else {
       return 'NEUTRAL';
@@ -236,6 +294,13 @@ async function generateRealSignal(klines, currentPrice) {
     console.error('Signal generation error:', error);
     return Math.random() > 0.5 ? 'LONG' : 'SHORT';
   }
+}
+
+// Calculate Simple Moving Average
+function calculateMA(data, period) {
+  if (data.length < period) return data[data.length - 1];
+  const sum = data.slice(-period).reduce((a, b) => a + b, 0);
+  return sum / period;
 }
 
 // CALCULATE REAL VOLATILITY
@@ -284,6 +349,21 @@ function calculateRealATR(klines, period = 14) {
   } catch {
     return (0.5 + Math.random() * 2).toFixed(3);
   }
+}
+
+// TIMEFRAME PRIORITY
+// Assigns priority to timeframes (higher number = higher priority)
+function getTimeframePriority(timeframe) {
+  const priorities = {
+    '1w': 7,
+    '1d': 6,
+    '4h': 5,
+    '1h': 4,
+    '30m': 3,
+    '15m': 2,
+    '5m': 1
+  };
+  return priorities[timeframe] || 0;
 }
 
 // KILLZONE DETECTION
