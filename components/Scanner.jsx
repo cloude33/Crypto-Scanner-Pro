@@ -41,6 +41,10 @@ export default function Scanner({ onScan }) {
       const data = await response.json();
       if (data.success) {
         setAllSymbols(data.symbols);
+        // Show a message if API is geo-restricted
+        if (data.source === 'binance-api-geo-restricted') {
+          console.log('Binance API is geo-restricted, using default symbols');
+        }
       }
     } catch (error) {
       console.error('Symbols fetch error:', error);
@@ -59,7 +63,7 @@ export default function Scanner({ onScan }) {
   const symbolOptions = {
     major: ['BTCUSDT', 'ETHUSDT', 'BNBUSDT'],
     top15: getDefaultSymbols(scanConfig.exchange),
-    all: allSymbols
+    all: allSymbols && allSymbols.length > 0 ? allSymbols : getDefaultSymbols(scanConfig.exchange)
   };
 
   const allTimeframes = ['5m', '15m', '30m', '1h', '4h', '1d', '1w'];
@@ -186,13 +190,21 @@ export default function Scanner({ onScan }) {
           <label className="block text-sm font-medium mb-3">
             📊 {exchanges[scanConfig.exchange].name} Symbols {loadingSymbols && <span className="text-yellow-400">(loading...)</span>}
           </label>
+          {allSymbols.length === 0 && !loadingSymbols && (
+            <div className="mb-3 p-2 bg-yellow-500/10 border border-yellow-500/30 rounded text-yellow-400 text-sm">
+              ⚠️ Binance API is currently unavailable. Using default symbol list.
+            </div>
+          )}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-3">
-            {[
-              { value: 'major', label: 'Major Coins', count: symbolOptions.major.length },
-              { value: 'top15', label: 'Top 15 Coins', count: symbolOptions.top15.length },
-              { value: 'all', label: 'All Coins', count: symbolOptions.all.length, warning: true },
-              { value: 'custom', label: 'Custom Coin', count: 1 }
-            ].map((symbolType) => (
+            {[{
+              value: 'major', label: 'Major Coins', count: symbolOptions.major.length
+            }, {
+              value: 'top15', label: 'Top 15 Coins', count: symbolOptions.top15.length
+            }, {
+              value: 'all', label: 'All Coins', count: symbolOptions.all.length, warning: true
+            }, {
+              value: 'custom', label: 'Custom Coin', count: 1
+            }].map((symbolType) => (
               <button
                 key={symbolType.value}
                 type="button"
@@ -223,7 +235,7 @@ export default function Scanner({ onScan }) {
             />
           )}
 
-          {scanConfig.symbols === 'all' && (
+          {scanConfig.symbols === 'all' && symbolOptions.all.length > 0 && (
             <div className="mt-2 p-3 bg-yellow-500/10 border border-yellow-500/30 rounded-lg">
               <div className="flex items-center text-yellow-400 text-sm">
                 <span className="mr-2">⚠️</span>
@@ -284,9 +296,9 @@ export default function Scanner({ onScan }) {
         <button
           type="submit"
           className="w-full py-4 bg-gradient-to-r from-green-500 to-blue-500 rounded-lg font-bold text-lg hover:from-green-600 hover:to-blue-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-          disabled={scanConfig.timeframes.length === 0 || (scanConfig.symbols === 'all' && allSymbols.length === 0)}
+          disabled={scanConfig.timeframes.length === 0 || (scanConfig.symbols === 'all' && symbolOptions.all.length === 0)}
         >
-          {scanConfig.symbols === 'all' ? (
+          {scanConfig.symbols === 'all' && symbolOptions.all.length > 0 ? (
             <>🚀 SCAN ALL COINS ({symbolOptions.all.length})</>
           ) : (
             <>🚀 START SCAN</>
@@ -294,7 +306,7 @@ export default function Scanner({ onScan }) {
         </button>
 
         {/* Progress Info */}
-        {scanConfig.symbols === 'all' && (
+        {scanConfig.symbols === 'all' && symbolOptions.all.length > 0 && (
           <div className="text-center text-sm text-gray-400">
             ⏳ Estimated time: ~{Math.ceil((symbolOptions.all.length * scanConfig.timeframes.length) / 10)} seconds
           </div>

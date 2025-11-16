@@ -40,6 +40,17 @@ export async function GET() {
         timestamp: new Date().toISOString(),
         source: 'binance-api'
       });
+    } else if (response.status === 451) {
+      // Handle geographic restrictions - return empty array but success
+      console.log('Binance API unavailable due to geographic restrictions (451)');
+      return NextResponse.json({
+        success: true,
+        symbols: [],
+        total: 0,
+        timestamp: new Date().toISOString(),
+        source: 'binance-api-geo-restricted',
+        message: 'API unavailable due to geographic restrictions'
+      });
     }
     
     throw new Error(`HTTP ${response.status}`);
