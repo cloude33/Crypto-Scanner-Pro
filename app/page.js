@@ -1,6 +1,6 @@
 'use client'
 // Main page component for the Crypto Scanner application
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Scanner from '../components/Scanner';
 import Results from '../components/Results';
 import Loading from '../components/Loading';
@@ -50,6 +50,30 @@ export default function Home() {
       setLoading(false);
     }
   };
+
+  // Simulate progress while scanning
+  useEffect(() => {
+    let interval;
+    if (loading && progress.total > 0) {
+      interval = setInterval(() => {
+        setProgress(prev => {
+          // Only update if we haven't reached 90% to leave room for actual completion
+          if (prev.processed < Math.min(prev.total * 0.9, prev.total - 1)) {
+            return {
+              ...prev,
+              processed: prev.processed + 1,
+              currentSymbol: `Processing coin ${prev.processed + 1}...`
+            };
+          }
+          return prev;
+        });
+      }, 300); // Update every 300ms
+    }
+    
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [loading, progress.total]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 text-white dark:from-gray-100 dark:to-gray-200 dark:text-gray-900 transition-colors duration-300">
