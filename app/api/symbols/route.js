@@ -1,10 +1,24 @@
+// app/api/symbols/route.js
 import { NextResponse } from 'next/server';
-import axios from 'axios';
 
 export async function GET() {
   try {
-    const response = await axios.get('https://api.binance.com/api/v3/exchangeInfo');
-    const symbols = response.data.symbols;
+    console.log('Fetching Binance symbols from Vercel...');
+    
+    const response = await fetch('https://api.binance.com/api/v3/exchangeInfo', {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (compatible; CryptoScanner/1.0)'
+      }
+    });
+    
+    console.log('Binance API Status:', response.status);
+    
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
+    
+    const data = await response.json();
+    const symbols = data.symbols || [];
     
     // Sadece USDT pair'lerini ve aktif olanları filtrele
     const usdtPairs = symbols
@@ -19,6 +33,8 @@ export async function GET() {
       .map(symbol => symbol.symbol)
       .sort();
 
+    console.log(`Successfully filtered ${usdtPairs.length} USDT pairs`);
+    
     return NextResponse.json({
       success: true,
       symbols: usdtPairs,
@@ -28,13 +44,21 @@ export async function GET() {
     
   } catch (error) {
     console.error('Symbols fetch error:', error);
-    return NextResponse.json(
-      { 
-        success: false, 
-        error: 'Symbols fetch failed',
-        message: error.message 
-      },
-      { status: 500 }
-    );
+    
+    // Fallback data - 15 majör coin
+    const fallbackSymbols = [
+      'BTCUSDT', 'ETHUSDT', 'BNBUSDT', 'ADAUSDT', 'SOLUSDT', 
+      'DOTUSDT', 'LINKUSDT', 'LTCUSDT', 'BCHUSDT', 'XLMUSDT',
+      'ATOMUSDT', 'ETCUSDT', 'VETUSDT', 'THETAUSDT', 'FILUSDT'
+    ].sort();
+    
+    return NextResponse.json({
+      success: true,
+      symbols: fallbackSymbols,
+      total: fallbackSymbols.length,
+      timestamp: new Date().toISOString(),
+      fallback: true,
+      error: error.message
+    });
   }
 }
