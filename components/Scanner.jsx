@@ -66,6 +66,11 @@ export default function Scanner({ onScan }) {
     all: allSymbols && allSymbols.length > 0 ? allSymbols : getDefaultSymbols(scanConfig.exchange)
   };
 
+  // Ensure we always have symbols for scanning
+  if (symbolOptions.all.length === 0) {
+    symbolOptions.all = getDefaultSymbols(scanConfig.exchange);
+  }
+
   const allTimeframes = ['5m', '15m', '30m', '1h', '4h', '1d', '1w'];
 
   // Handle form submission and initiate scan
@@ -191,8 +196,8 @@ export default function Scanner({ onScan }) {
             📊 {exchanges[scanConfig.exchange].name} Symbols {loadingSymbols && <span className="text-yellow-400">(loading...)</span>}
           </label>
           {allSymbols.length === 0 && !loadingSymbols && (
-            <div className="mb-3 p-2 bg-yellow-500/10 border border-yellow-500/30 rounded text-yellow-400 text-sm">
-              ⚠️ Binance API is currently unavailable. Using default symbol list.
+            <div className="mb-3 p-2 bg-blue-500/10 border border-blue-500/30 rounded text-blue-400 text-sm">
+              ℹ️ Using default symbol list for scanning.
             </div>
           )}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-3">
